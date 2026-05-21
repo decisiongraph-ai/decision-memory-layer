@@ -30,6 +30,129 @@ Future enterprise intelligence systems will require:
 
 AI systems without memory suffer from operational amnesia.
 
+## Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Docker (optional, for containerized deployment)
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/decisiongraph-ai/decision-memory-layer.git
+cd decision-memory-layer
+
+# Create a virtual environment
+python -m venv .venv
+source .venv/bin/activate
+
+# Install with dev dependencies
+pip install -e ".[dev]"
+
+# Run the API server
+uvicorn decision_memory.api:app --reload
+
+# Run tests
+pytest
+
+# Run linter
+ruff check src/ tests/
+```
+
+### Docker
+
+```bash
+# Build and run with Docker Compose
+docker compose up --build
+
+# Or build and run directly
+docker build -t decision-memory-layer .
+docker run -p 8000:8000 decision-memory-layer
+```
+
+The API will be available at `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
+
+### Configuration
+
+| Environment Variable | Default    | Description                  |
+|---------------------|------------|------------------------------|
+| `DML_DB_PATH`       | `:memory:` | SQLite database file path    |
+
+## Architecture
+
+```
+Enterprise Systems -> Event Stream -> Memory Layer -> Knowledge Graph -> Retrieval + Reasoning Layer -> Decision Intelligence
+```
+
+### Repository Structure
+
+```
+decision-memory-layer/
+├── src/
+│   └── decision_memory/
+│       ├── __init__.py          # Package init
+│       ├── models.py            # Pydantic models for decisions, context, relationships
+│       ├── memory_store.py      # In-memory + SQLite persistence for decisions
+│       ├── temporal.py          # Temporal context tracking (decision evolution over time)
+│       ├── knowledge_graph.py   # Lightweight knowledge graph using networkx
+│       ├── retrieval.py         # Query interface for decision retrieval
+│       └── api.py               # FastAPI REST API
+├── tests/
+│   ├── test_models.py
+│   ├── test_memory_store.py
+│   ├── test_temporal.py
+│   ├── test_knowledge_graph.py
+│   └── test_api.py
+├── pyproject.toml               # Modern Python packaging with hatchling
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+
+### Tech Stack
+
+- **Python 3.11+** — modern type hints and async support
+- **FastAPI** — high-performance async REST API
+- **Pydantic v2** — data validation and serialization
+- **SQLite (aiosqlite)** — lightweight async persistence
+- **networkx** — knowledge graph for decision relationships
+- **pytest** — testing framework
+
+## API Endpoints
+
+### Decisions
+
+| Method   | Endpoint                              | Description                     |
+|----------|---------------------------------------|---------------------------------|
+| `POST`   | `/decisions`                          | Create a new decision           |
+| `GET`    | `/decisions`                          | List decisions (filter by status) |
+| `GET`    | `/decisions/{id}`                     | Get a specific decision         |
+| `PATCH`  | `/decisions/{id}`                     | Update a decision               |
+| `DELETE` | `/decisions/{id}`                     | Delete a decision               |
+| `POST`   | `/decisions/search`                   | Search decisions                |
+| `GET`    | `/decisions/{id}/history`             | Get decision change history     |
+| `GET`    | `/decisions/{id}/relationships`       | Get decision relationships      |
+| `GET`    | `/decisions/{id}/related`             | Get related decisions (graph)   |
+| `GET`    | `/decisions/{id}/dependencies`        | Get dependency chain            |
+| `GET`    | `/decisions/{id}/impact`              | Get impact chain                |
+
+### Relationships
+
+| Method   | Endpoint                    | Description               |
+|----------|-----------------------------|---------------------------|
+| `POST`   | `/relationships`            | Create a relationship     |
+| `GET`    | `/relationships`            | List relationships        |
+| `GET`    | `/relationships/{id}`       | Get a specific relationship |
+| `DELETE` | `/relationships/{id}`       | Delete a relationship     |
+
+### Other
+
+| Method | Endpoint    | Description   |
+|--------|-------------|---------------|
+| `GET`  | `/health`   | Health check  |
+
 ## MVP Goals
 
 ### Decision Persistence
@@ -61,22 +184,6 @@ Enable systems that can:
 - explain historical reasoning
 - identify repeated patterns
 - support long-term operational cognition
-
-## Proposed Architecture
-
-Enterprise Systems -> Event Stream -> Memory Layer -> Knowledge Graph -> Retrieval + Reasoning Layer -> Decision Intelligence
-
-## Repository Structure
-
-decision-memory-layer/
-├── docs/
-├── architecture/
-├── memory-models/
-├── temporal-reasoning/
-├── knowledge-graph/
-├── retrieval/
-├── backend/
-└── README.md
 
 ## Enterprise Use Cases
 

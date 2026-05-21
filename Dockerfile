@@ -1,0 +1,32 @@
+# Stage 1: Build
+FROM python:3.11.9-alpine3.20@sha256:1bcefb95bd059ea0240d2fe86a994cf13ab7571c2b32f9e7beaaff0e2073a4d5 AS builder
+
+WORKDIR /build
+
+COPY pyproject.toml README.md ./
+COPY src/ ./src/
+
+RUN pip install --no-cache-dir --prefix=/install .
+
+# Stage 2: Runtime
+FROM python:3.11.9-alpine3.20@sha256:1bcefb95bd059ea0240d2fe86a994cf13ab7571c2b32f9e7beaaff0e2073a4d5
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+WORKDIR /app
+
+COPY --from=builder /install /usr/local
+COPY src/ ./src/
+
+RUN mkdir -p /app/data && chown appuser:appgroup /app/data
+
+USER appuser
+
+ENV DML_DB_PATH=/app/data/decisions.db
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
+
+CMD ["uvicorn", "decision_memory.api:app", "--host", "0.0.0.0", "--port", "8000"]
