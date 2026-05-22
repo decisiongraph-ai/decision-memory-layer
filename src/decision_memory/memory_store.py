@@ -124,9 +124,10 @@ class MemoryStore:
         if not updates:
             return existing
 
-        for field, value in updates.items():
-            setattr(existing, field, value)
-        existing.updated_at = _utcnow()
+        existing_data = existing.model_dump()
+        existing_data.update(updates)
+        existing_data["updated_at"] = _utcnow()
+        existing = Decision.model_validate(existing_data)
 
         row = _decision_to_row(existing)
         await self.db.execute(

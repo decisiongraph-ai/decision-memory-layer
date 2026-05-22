@@ -29,10 +29,10 @@ class KnowledgeGraph:
 
     def __init__(self, db: aiosqlite.Connection) -> None:
         self._db = db
-        self._graph = nx.DiGraph()
+        self._graph = nx.MultiDiGraph()
 
     @property
-    def graph(self) -> nx.DiGraph:
+    def graph(self) -> nx.MultiDiGraph:
         return self._graph
 
     async def initialize(self) -> None:
@@ -49,7 +49,7 @@ class KnowledgeGraph:
             self._graph.add_edge(
                 rel.source_id,
                 rel.target_id,
-                id=rel.id,
+                key=rel.id,
                 relationship_type=rel.relationship_type.value,
                 description=rel.description,
                 created_at=rel.created_at.isoformat(),
@@ -79,7 +79,7 @@ class KnowledgeGraph:
         self._graph.add_edge(
             rel.source_id,
             rel.target_id,
-            id=rel.id,
+            key=rel.id,
             relationship_type=rel.relationship_type.value,
             description=rel.description,
             created_at=rel.created_at.isoformat(),
@@ -101,8 +101,8 @@ class KnowledgeGraph:
             return False
         await self._db.execute("DELETE FROM relationships WHERE id = ?", (relationship_id,))
         await self._db.commit()
-        if self._graph.has_edge(rel.source_id, rel.target_id):
-            self._graph.remove_edge(rel.source_id, rel.target_id)
+        if self._graph.has_edge(rel.source_id, rel.target_id, key=relationship_id):
+            self._graph.remove_edge(rel.source_id, rel.target_id, key=relationship_id)
         return True
 
     async def get_relationships_for(self, decision_id: str) -> list[Relationship]:
