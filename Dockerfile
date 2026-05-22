@@ -16,7 +16,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 COPY --from=builder /install /usr/local
-COPY src/ ./src/
+COPY --chown=appuser:appgroup src/ ./src/
 
 RUN mkdir -p /app/data && chown appuser:appgroup /app/data
 
