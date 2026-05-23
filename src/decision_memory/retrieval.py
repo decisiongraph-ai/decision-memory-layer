@@ -61,13 +61,15 @@ class RetrievalEngine:
         terms = keywords.lower().split()
         results = []
         for d in decisions:
-            searchable = " ".join([
-                d.title,
-                d.description,
-                d.rationale,
-                " ".join(d.tags),
-                " ".join(d.stakeholders),
-            ]).lower()
+            searchable = " ".join(
+                [
+                    d.title,
+                    d.description,
+                    d.rationale,
+                    " ".join(d.tags),
+                    " ".join(d.stakeholders),
+                ]
+            ).lower()
             if all(t in searchable for t in terms):
                 results.append(d)
         return results
@@ -80,12 +82,14 @@ class RetrievalEngine:
         terms = query.keywords.lower().split()
 
         def score(d: Decision) -> float:
-            text = " ".join([
-                d.title,
-                d.description,
-                d.rationale,
-                " ".join(d.tags),
-            ]).lower()
+            text = " ".join(
+                [
+                    d.title,
+                    d.description,
+                    d.rationale,
+                    " ".join(d.tags),
+                ]
+            ).lower()
             return sum(text.count(t) for t in terms)
 
         return sorted(decisions, key=score, reverse=True)
